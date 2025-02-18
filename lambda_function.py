@@ -166,9 +166,9 @@ system_prompt = '''
 https://youtube.com/@PHILALIVE
 https://facebook.com/1001000.io
 https://instagram.com/1001000.io
-
-切勿使用簡體中文，務必使用繁體中文
 '''
+from opencc import OpenCC
+cc = OpenCC('s2twp')
 
 def assistant_messages(event, user_text):
     assistant_messages = []
@@ -227,7 +227,7 @@ def assistant_messages(event, user_text):
         for chunk in stream:
             if chunk.choices[0].delta.content is not None:
                 assistant_text += chunk.choices[0].delta.content
-        assistant_messages.append(TextMessage(text=assistant_text.replace('think>', '內心小劇場>')))
+        assistant_messages.append(TextMessage(text=cc.convert(assistant_text.replace('</think>', '\n💭 以上為內心小劇場 💭\n'))))
         return assistant_messages
     except Exception as e:
         requests.post(notify_api, headers=notify_header, data={'message': e})
