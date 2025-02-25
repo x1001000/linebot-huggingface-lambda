@@ -153,7 +153,7 @@ from huggingface_hub import InferenceClient
 inference_client = InferenceClient(api_key=inference_access_token)
 model_supports_tools = 'meta-llama/Llama-3.3-70B-Instruct'
 model_supports_vision = 'meta-llama/Llama-3.2-11B-Vision-Instruct'
-model_generates_text = 'deepseek-ai/DeepSeek-R1-Distill-Qwen-32B'
+model_generates_text = model_supports_tools#'deepseek-ai/DeepSeek-R1-Distill-Qwen-32B'
 model_generates_image = 'black-forest-labs/FLUX.1-schnell'
 model_generates_transcript = 'openai/whisper-large-v3'
 import edge_tts
@@ -286,10 +286,11 @@ def generate_image(event, prompt):
     message_id = event.message.id
     requests.post(notify_api, headers=notify_header, data={'message': model_generates_image})
     try:
-        image_content = requests.post(f'{inference_api}/models/{model_generates_image}', headers=inference_header, data={'inputs': prompt}).content
-        with open(f'/tmp/{message_id}.jpg', 'wb') as tf:
-            tf.write(image_content)
-        return s3_object_url(f'/tmp/{message_id}.jpg')
+        # image_content = requests.post(f'{inference_api}/models/{model_generates_image}', headers=inference_header, data={'inputs': prompt}).content
+        # with open(f'/tmp/{message_id}.jpg', 'wb') as tf:
+        #     tf.write(image_content)
+        inference_client.text_to_image(prompt, model=model_generates_image).save(f'/tmp/{message_id}.png')
+        return s3_object_url(f'/tmp/{message_id}.png')
     except Exception as e:
         requests.post(notify_api, headers=notify_header, data={'message': e})
 def describe_image(event, question):
