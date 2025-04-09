@@ -100,8 +100,8 @@ def handle_sticker_message(event):
 def handle_audio_message(event):
     message_id = event.message.id
     message_content = line_bot_blob_api.get_message_content(message_id=message_id)
-    # with open(f'/tmp/{message_id}.m4a', 'wb') as tf:
-    #     tf.write(message_content)
+    with open(f'/tmp/{message_id}.m4a', 'wb') as tf:
+        tf.write(message_content)
     # transcript = openai_client.audio.transcriptions.create(
     #     model='whisper-1',
     #     file=open(f'/tmp/{message_id}.m4a', 'rb'),
@@ -109,12 +109,14 @@ def handle_audio_message(event):
     #     ).strip()
     httpx.post(discord_api, headers=authorization_header, json={'content': model_generates_transcript})
     try:
-        d = httpx.post(f'{inference_api}/models/{model_generates_transcript}', headers=inference_header, json=message_content).json()
-        transcript = d.get('text')
-        error = d.get('error')
-        if error:
-            httpx.post(discord_api, headers=authorization_header, json={'content': error})
-            return
+        # d = httpx.post(f'{inference_api}/models/{model_generates_transcript}', headers=inference_header, json=message_content).json()
+        # transcript = d.get('text')
+        output = inference_client.automatic_speech_recognition(f'/tmp/{message_id}.m4a', model=model_generates_transcript)
+        transcript = output.text
+        # error = d.get('error')
+        # if error:
+        #     httpx.post(discord_api, headers=authorization_header, json={'content': error})
+        #     return
     except Exception as e:
         httpx.post(discord_api, headers=authorization_header, json={'content': e})
         return
@@ -159,7 +161,7 @@ model_generates_text = 'grok-2-vision'
 model_generates_image = 'grok-2-image'
 # inference_client = OpenAI(base_url=f'{inference_api}/v1', api_key=inference_access_token)
 from huggingface_hub import InferenceClient
-inference_client = InferenceClient(api_key=inference_access_token)
+inference_client = InferenceClient(provider="hf-inference", api_key=inference_access_token)
 # model_supports_tools = 'meta-llama/Llama-3.3-70B-Instruct'
 # model_supports_vision = 'meta-llama/Llama-3.2-11B-Vision-Instruct'
 # model_generates_text = model_supports_tools#'deepseek-ai/DeepSeek-R1-Distill-Qwen-32B'
