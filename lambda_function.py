@@ -72,7 +72,7 @@ handler = WebhookHandler(channel_secret)
 def handle_text_message(event):
     user_text = event.message.text
     if event.source.type != 'user':
-        if m := re.search('@(Secret Agent )?PHIL', user_text, flags=re.IGNORECASE):
+        if m := re.search('@(Agent )?PHIL', user_text, flags=re.IGNORECASE):
             user_text = user_text.replace(m.group(), m.group()[1:])
         else:
             return
@@ -389,8 +389,8 @@ threads = boto3.resource('dynamodb').Table('threads')
 def s3_object_url(filename=None, source_id=None):
     bucket = 'x1001000-public'
     if filename:
-        key = f'Secret-Agent-PHIL/{filename[5:]}'
+        key = f'Agent-PHIL/{filename[5:]}'
         boto3.client('s3').upload_file(filename, bucket, key, ExtraArgs={'ContentType': 'image/jpg'})
     else:
-        key = f'Secret-Agent-PHIL/{source_id}.jpg'
+        key = f'Agent-PHIL/{source_id}.jpg'
     return f'https://{bucket}.s3.ap-northeast-1.amazonaws.com/{key}'
